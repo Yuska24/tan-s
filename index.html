@@ -26,22 +26,37 @@
   .choice-btn { background: transparent; border: 0.5px solid #b388ff2e; border-radius: 16px; padding: 15px 18px; cursor: pointer; transition: all .25s ease; display: flex; align-items: center; gap: 14px; color: #f5f0ff; text-align: left; font-family: 'Jost', sans-serif; width: 100%; }
   .choice-btn:active { transform: scale(0.97); opacity: .85; }
   .choice-btn.yes-btn:active { background: #c084fc18; border-color: #c084fc88; }
-  .choice-btn.no-btn:active { background: #f4898918; border-color: #f4898966; }
   .choice-btn.maybe-btn:active { background: #80cbc418; border-color: #80cbc466; }
   .choice-btn.playful-btn:active { background: #ffd70018; border-color: #ffd70066; }
+
+  /* Qaçan no düyməsi */
+  .no-wrapper { position: relative; height: 54px; margin-top: 2px; }
+  .choice-btn.no-btn { position: absolute; left: 0; top: 0; width: 100%; border: 0.5px solid #f4898922; transition: left .15s ease, top .15s ease; }
+  .choice-btn.no-btn.escaped { border-color: #f4898955; }
+
   .emoji-big { font-size: 1.6rem; min-width: 2.2rem; text-align:center; }
   .choice-text { flex:1; }
   .choice-label { font-size: 14px; font-weight: 300; letter-spacing:.3px; color: #f5f0ffdd; display: block; margin-bottom: 3px; }
   .choice-sub { font-size: 11.5px; font-weight: 200; color: #ffffff3a; display: block; line-height:1.4; }
+
   .response-area { display: none; flex-direction: column; align-items: center; gap: 1.1rem; text-align: center; padding: 1rem 0; }
   .response-emoji { font-size: 3rem; animation: popIn .5s ease forwards; }
   .response-title { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1.75rem; color:#e2b4ff; line-height:1.3; animation: riseIn .6s ease .1s both; }
   .response-sub { font-size: 12px; font-weight:200; color:#ffffff44; letter-spacing:.8px; animation: riseIn .6s ease .3s both; line-height:1.6; }
   .back-btn { margin-top:.3rem; background: transparent; border: 0.5px solid #ffffff1a; border-radius: 50px; padding: 10px 24px; color: #ffffff2a; font-family:'Jost',sans-serif; font-size:11px; letter-spacing:1.5px; cursor:pointer; transition: all .25s; animation: riseIn .6s ease .5s both; }
   .back-btn:active { color:#ffffff66; border-color:#ffffff44; }
+
+  /* Konfetti */
+  .confetti-piece { position:fixed; pointer-events:none; z-index:999; animation: confettiFall linear forwards; }
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity:1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity:0; }
+  }
+
   .footer-wrap { margin-top: 2rem; opacity:0; animation: riseIn 1s ease 2.3s forwards; display: flex; flex-direction: column; align-items: center; gap: 5px; }
   .footer-note { font-size:10px; color:#ffffff; font-weight:200; letter-spacing:1px; }
   .made-by { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 13px; color: #b388ff44; letter-spacing: 1.5px; }
+
   @keyframes riseIn { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
   @keyframes fadeIn { to{opacity:1} }
   @keyframes popIn { 0%{transform:scale(.5);opacity:0} 70%{transform:scale(1.2)} 100%{transform:scale(1);opacity:1} }
@@ -65,7 +80,6 @@
           <span class="choice-sub">bəli, niyə olmasın</span>
         </span>
       </button>
-
       <button class="choice-btn playful-btn" onclick="respond('curious')">
         <span class="emoji-big">🎲</span>
         <span class="choice-text">
@@ -80,45 +94,109 @@
           <span class="choice-sub">bəlkə... indi tam bilmirəm ki</span>
         </span>
       </button>
-      <button class="choice-btn no-btn" onclick="respond('no')">
-        <span class="emoji-big">❌</span>
-        <span class="choice-text">
-          <span class="choice-label">bu emojini göndər</span>
-          <span class="choice-sub">yox, amma bunu göndərirəm sadəcə</span>
-        </span>
-      </button>
+
+      <!-- Qaçan düymə -->
+      <div class="no-wrapper" id="noWrapper">
+        <button class="choice-btn no-btn" id="noBtn"
+          onmouseenter="escapeBtn(event)"
+          ontouchstart="escapeBtn(event)"
+          onclick="respond('no')">
+          <span class="emoji-big">❌</span>
+          <span class="choice-text">
+            <span class="choice-label">bu emojini göndər</span>
+            <span class="choice-sub">yox, amma bunu göndərirəm sadəcə</span>
+          </span>
+        </button>
+      </div>
     </div>
   </div>
+
   <div class="response-area" id="responseArea">
     <div class="response-emoji" id="respEmoji"></div>
     <p class="response-title" id="respTitle"></p>
     <p class="response-sub" id="respSub"></p>
     <button class="back-btn" onclick="goBack()">← geri qayıt</button>
   </div>
+
   <div class="footer-wrap">
     <p class="footer-note">bu səhifə yalnız Xumar üçün yaradıldı</p>
     <p class="made-by">Made by Yusif</p>
   </div>
 </div>
+
 <script>
 const responses = {
-  yes: { emoji:'🌙✨', title:'gözəl seçim, Xumar. gözləyirəm.', sub:'bu emojini göndər, danışaq' },
-  curious: { emoji:'🎲', title:'sual ver, cavab verim.', sub:'bu emojini göndər, oyun başlasın' },
-  maybe: { emoji:'❓', title:'tamam, Xumar, burada olacağam.', sub:'hazır olanda bu emojini göndər' },
-  no: { emoji:'❌', title:'tamam, başa düşdüm.', sub:'Məncə bu o qədər də yaxşı bir emoji deyil' }
+  yes:     { emoji:'🌙✨', title:'gözəl seçim, Xumar. gözləyirəm.', sub:'bu emojini göndər, danışaq' },
+  curious: { emoji:'🎲',   title:'sual ver, cavab verim.',           sub:'bu emojini göndər, oyun başlasın' },
+  maybe:   { emoji:'❓',   title:'tamam, Xumar, burada olacağam.',   sub:'hazır olanda bu emojini göndər' },
+  no:      { emoji:'❌',   title:'tamam, başa düşdüm.',              sub:'Məncə bu o qədər də yaxşı bir emoji deyil' }
 };
-function respond(type) {
-  const r = responses[type];
-  document.getElementById('respEmoji').textContent = r.emoji;
-  document.getElementById('respTitle').textContent = r.title;
-  document.getElementById('respSub').textContent = r.sub;
-  document.getElementById('mainView').style.display = 'none';
-  document.getElementById('responseArea').style.display = 'flex';
+
+// ---- Qaçan düymə ----
+let escapeCount = 0;
+
+function escapeBtn(e) {
+  if (escapeCount >= 5) return;
+  e.preventDefault();
+  const btn = document.getElementById('noBtn');
+  const container = document.querySelector('.container');
+  const cRect = container.getBoundingClientRect();
+  const wRect = document.getElementById('noWrapper').getBoundingClientRect();
+  const maxX = cRect.width - btn.offsetWidth;
+  const maxY = cRect.height - btn.offsetHeight - 20;
+  btn.style.position = 'fixed';
+  btn.style.width = wRect.width + 'px';
+  btn.style.left = (cRect.left + Math.random() * maxX) + 'px';
+  btn.style.top  = (cRect.top  + Math.random() * maxY) + 'px';
+  btn.style.zIndex = 50;
+  btn.classList.add('escaped');
+  escapeCount++;
 }
+
+// ---- Respond ----
+function respond(type) {
+  if (type === 'yes' || type === 'curious') launchConfetti();
+  setTimeout(() => {
+    const r = responses[type];
+    document.getElementById('respEmoji').textContent = r.emoji;
+    document.getElementById('respTitle').textContent = r.title;
+    document.getElementById('respSub').textContent   = r.sub;
+    document.getElementById('mainView').style.display    = 'none';
+    document.getElementById('responseArea').style.display = 'flex';
+  }, (type === 'yes' || type === 'curious') ? 600 : 0);
+}
+
 function goBack() {
-  document.getElementById('mainView').style.display = 'block';
+  const btn = document.getElementById('noBtn');
+  btn.style.position = 'absolute';
+  btn.style.left = '0'; btn.style.top = '0'; btn.style.width = '100%';
+  btn.classList.remove('escaped');
+  escapeCount = 0;
+  document.getElementById('mainView').style.display     = 'block';
   document.getElementById('responseArea').style.display = 'none';
 }
+
+// ---- Konfetti ----
+function launchConfetti() {
+  const colors = ['#e2b4ff','#c084fc','#f4b8ea','#ffd6f0','#b388ff','#ffffff','#fbbf24'];
+  for (let i = 0; i < 80; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left   = Math.random() * 100 + 'vw';
+      el.style.top    = '-10px';
+      el.style.background   = colors[Math.floor(Math.random() * colors.length)];
+      el.style.width  = (6 + Math.random() * 6) + 'px';
+      el.style.height = (6 + Math.random() * 6) + 'px';
+      el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      el.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 4000);
+    }, i * 20);
+  }
+}
+
+// ---- Ulduzlar ----
 const canvas = document.getElementById('stars');
 const ctx = canvas.getContext('2d');
 let W, H, stars = [];
